@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN 
+}
+
+model User {
+  id                        String @id @default(uuid())
+  email                     String @unique
+  password                  String 
+  leaderBoard               LeaderBoard[]
+  role                      Role  
+}
+
+model Context {
+  id                        String @id @default(uuid())
+  title                     String
+  startTime                 DateTime 
+  leaderBoard               LeaderBoard[]
+  contest2challengeMapping  Context2Challenges[]
+}
+
+model Context2Challenges {
+  id                         String @id @default(uuid())
+  contextId                  String
+  challengeId                String
+  index                      Int
+  summision                  Summisons[]
+  context                    Context @relation(fields: [contextId], references: [id])
+  challenge                  Challenges @relation(fields: [challengeId], references: [id])
+
+  @@unique([contextId, challengeId])
+}
+
+model Challenges {
+  id                          String @id @default(uuid())
+  title                       String
+  notionDoc                   String
+  maxPoints                   Int
+  challenge2contextMapping    Context2Challenges[] 
+}
+
+model Summisons {
+  id                            String @id @default(uuid())
+  contestId                     String
+  challengeId                   String
+  context2challengeMappingId    String
+  context2challengeMapping      Context2Challenges @relation(fields: [context2challengeMappingId], references: [id])
+  points                        Int
+  createdAt                     DateTime @default(now())
+}
+
+model LeaderBoard {
+  id                            String @id @default(uuid())
+  contextId                     String
+  userId                        String
+  context                       Context @relation(fields: [contextId], references: [id])
+  user                          User @relation(fields: [userId], references: [id])
+  rank                          Int
+  @@unique([contextId, rank])
+}
